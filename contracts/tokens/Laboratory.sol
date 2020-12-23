@@ -2,8 +2,9 @@
 pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
-contract Laboratory is ERC1155 {
+contract Laboratory is ERC1155, Ownable {
     uint256 public constant GOLD = 0;
     uint256 public constant SILVER = 1;
     uint256 public constant METAL = 2;
@@ -19,5 +20,21 @@ contract Laboratory is ERC1155 {
         _mint(_msgSender(), METAL, 2e10 * 1e18, "");
         _mint(_msgSender(), WOOD, 7e12 * 1e18, "");
         _mint(_msgSender(), ROCK, 33e14 * 1e18, "");
+    }
+
+    function addResources(uint256 id, uint256 amount, bytes memory data)
+        external
+        onlyOwner
+        returns (bool)
+    {
+        _mint(_msgSender(), id, amount, data);
+    }
+
+    function addBatchOfResources(uint256[] memory ids, uint256[] memory amounts, bytes memory data)
+        external
+        onlyOwner
+        returns (bool)
+    {
+        _mintBatch(_msgSender(), ids, amounts, data);
     }
 }
