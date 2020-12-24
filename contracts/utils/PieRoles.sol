@@ -34,7 +34,7 @@ abstract contract PieRoles is AccessControl {
 
     modifier onlyBaker()
     {
-        require(isBaker(_msgSender()), "PieRoles: allowed only for Chef");
+        require(isBaker(_msgSender()), "PieRoles: allowed only for Baker");
         _;
     }
 

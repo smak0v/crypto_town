@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.0;
 
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol";
 
 import "../utils/PieRoles.sol";
@@ -13,10 +12,8 @@ contract Pie is ERC20Capped, PieRoles {
     event KitchenOpened(uint256 indexed timestamp);
 
     struct BakerInfo {
-        uint256 lastBakedPieTimestamp;
-        uint256 lastDestroyedPieTimestamp;
-        uint8 bakedPiesCountForLastHour;
-        uint8 destroyedPiesCountForLastHour;
+        uint256 timestamp;
+        uint8 amount;
     }
 
     mapping(address => BakerInfo) public bakersInfo;
@@ -36,23 +33,18 @@ contract Pie is ERC20Capped, PieRoles {
         _;
     }
 
-    modifier approvedForBakingPies(uint8 amount)
+    modifier approvedForWorkWithPies(uint8 amount)
     {
-        require(
-            bakersInfo[_msgSender()].bakedPiesCountForLastHour + amount <= 4
-                || bakersInfo[_msgSender()].lastBakedPieTimestamp + 1 hours <= now,
-            "Pie: you can bake only 4 Pies in an hour"
-        );
-        _;
-    }
+        if (bakersInfo[_msgSender()].timestamp + 1 hours <= now) {
+            bakersInfo[_msgSender()].timestamp = now;
+            bakersInfo[_msgSender()].amount = 0;
+        }
 
-    modifier approvedForDestroyingPies(uint8 amount)
-    {
         require(
-            bakersInfo[_msgSender()].destroyedPiesCountForLastHour + amount <= 4
-                || bakersInfo[_msgSender()].lastDestroyedPieTimestamp + 1 hours <= now,
-            "Pie: you can destroy only 4 Pies in an hour"
+            bakersInfo[_msgSender()].amount + amount <= 4,
+            "Pie: you can bake or destroy only 4 Pies in an hour"
         );
+
         _;
     }
 
@@ -60,37 +52,31 @@ contract Pie is ERC20Capped, PieRoles {
         external
         onlyBaker
         onlyOnOpenedKitchen
-        approvedForBakingPies(amount)
+        approvedForWorkWithPies(amount)
         returns (bool)
     {
         _mint(_msgSender(), amount);
 
-        if (bakersInfo[_msgSender()].lastBakedPieTimestamp + 1 hours <= now) {
-            bakersInfo[_msgSender()].bakedPiesCountForLastHour = amount;
-        } else {
-            bakersInfo[_msgSender()].bakedPiesCountForLastHour += amount;
-        }
-
-        bakersInfo[_msgSender()].lastBakedPieTimestamp = now;
+        bakersInfo[_msgSender()].amount += amount;
 
         emit PiesBaked(_msgSender(), amount);
+
+        return true;
     }
 
     function destroyPies(uint8 amount)
         external
         onlyBaker
-        approvedForDestroyingPies(amount)
+        approvedForWorkWithPies(amount)
         returns (bool)
     {
-        if (bakersInfo[_msgSender()].lastDestroyedPieTimestamp + 1 hours <= now) {
-            bakersInfo[_msgSender()].destroyedPiesCountForLastHour = amount;
-        } else {
-            bakersInfo[_msgSender()].destroyedPiesCountForLastHour += amount;
-        }
+        _burn(_msgSender(), amount);
 
-        bakersInfo[_msgSender()].lastDestroyedPieTimestamp = now;
+        bakersInfo[_msgSender()].amount += amount;
 
         emit PiesDestroyed(_msgSender(), amount);
+
+        return true;
     }
 
     function closeKitchen()
