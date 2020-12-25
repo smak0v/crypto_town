@@ -50,7 +50,13 @@ contract Temple is Ownable {
         IPie pie = IPie(pieAddress);
         uint256 balance = pie.balanceOf(address(this));
 
-        // TODO distribute donations between destitutes
+        for(uint256 i = 0; i < destitutes.length(); ++i) {
+            pie.transfer(destitutes.at(i), balance / destitutes.length());
+
+            if (pie.balanceOf(destitutes.at(i)) > 5 * pie.decimals()) {
+                removeDestitute(destitutes.at(i));
+            }
+        }
 
         emit DonatedPiesDistributed(balance);
 
@@ -70,19 +76,31 @@ contract Temple is Ownable {
         return true;
     }
 
-    function addDistitute(address distitute)
+    function addDestitute(address destitute)
         external
         onlyOwner
         returns (bool)
     {
-        // TODO
+        IPie pie = IPie(pieAddress);
+
+        require(destitutes.length() <= 50, "Temple: cann ot help more than 50 destitutes");
+        require(
+            pie.balanceOf(destitute) < 5 * pie.decimals(),
+            "Temple: this account does not need help now"
+        );
+
+        if (destitutes.add(destitute)) {
+            emit DestituteAdded(destitute);
+        }
     }
 
-    function removeDistitute(address distitute)
-        external
+    function removeDestitute(address destitute)
+        public
         onlyOwner
         returns (bool)
     {
-        // TODO
+        if (destitutes.remove(destitute)) {
+            emit DestituteRemoved(destitute);
+        }
     }
 }

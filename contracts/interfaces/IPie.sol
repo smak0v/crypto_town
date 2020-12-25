@@ -28,4 +28,9 @@ abstract contract IPie is IERC20 {
         external
         virtual
         returns (bool);
+
+    function decimals()
+        external
+        virtual
+        returns (uint256);
 }
