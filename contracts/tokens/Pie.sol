@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Capped.sol";
 
 import "../utils/PieRoles.sol";
 
 contract Pie is ERC20Capped, PieRoles {
-    event PiesBaked(address indexed baker, uint8 amount);
-    event PiesDestroyed(address indexed baker, uint8 amount);
+    event PiesBaked(address indexed baker, uint256 amount);
+    event PiesDestroyed(address indexed baker, uint256 amount);
     event KitchenClosed(uint256 indexed timestamp);
     event KitchenOpened(uint256 indexed timestamp);
 
     struct BakerInfo {
         uint256 timestamp;
-        uint8 amount;
+        uint256 amount;
     }
 
     mapping(address => BakerInfo) public bakersInfo;
@@ -33,22 +33,22 @@ contract Pie is ERC20Capped, PieRoles {
         _;
     }
 
-    modifier approvedForWorkWithPies(uint8 amount)
+    modifier approvedForWorkWithPies(uint256 amount)
     {
-        if (bakersInfo[_msgSender()].timestamp + 1 hours <= now) {
-            bakersInfo[_msgSender()].timestamp = now;
+        if (bakersInfo[_msgSender()].timestamp + 1 hours <= block.timestamp) {
+            bakersInfo[_msgSender()].timestamp = block.timestamp;
             bakersInfo[_msgSender()].amount = 0;
         }
 
         require(
-            bakersInfo[_msgSender()].amount + amount <= 4,
-            "Pie: you can bake or destroy only 4 Pies in an hour"
+            bakersInfo[_msgSender()].amount + amount <= 4e18,
+            "Pie: you can bake or destroy only 4e18 Pies in an hour"
         );
 
         _;
     }
 
-    function bakePies(uint8 amount)
+    function bakePies(uint256 amount)
         external
         onlyBaker
         onlyOnOpenedKitchen
@@ -64,7 +64,7 @@ contract Pie is ERC20Capped, PieRoles {
         return true;
     }
 
-    function destroyPies(uint8 amount)
+    function destroyPies(uint256 amount)
         external
         onlyBaker
         approvedForWorkWithPies(amount)
@@ -87,7 +87,7 @@ contract Pie is ERC20Capped, PieRoles {
         if (!isClosedKitchen) {
             isClosedKitchen = true;
 
-            emit KitchenClosed(now);
+            emit KitchenClosed(block.timestamp);
         }
 
         return true;
@@ -101,7 +101,7 @@ contract Pie is ERC20Capped, PieRoles {
         if (isClosedKitchen) {
             isClosedKitchen = false;
 
-            emit KitchenOpened(now);
+            emit KitchenOpened(block.timestamp);
         }
 
         return true;

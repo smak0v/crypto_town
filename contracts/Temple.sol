@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
@@ -92,6 +92,8 @@ contract Temple is Ownable {
         if (destitutes.add(destitute)) {
             emit DestituteAdded(destitute);
         }
+
+        return true;
     }
 
     function removeDestitute(address destitute)
@@ -102,5 +104,7 @@ contract Temple is Ownable {
         if (destitutes.remove(destitute)) {
             emit DestituteRemoved(destitute);
         }
+
+        return true;
     }
 }

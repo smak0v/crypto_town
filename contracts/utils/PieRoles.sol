@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 import "openzeppelin-solidity/contracts/access/AccessControl.sol";
 import "openzeppelin-solidity/contracts/utils/EnumerableSet.sol";
@@ -19,8 +19,8 @@ abstract contract PieRoles is AccessControl {
     event BakerRemoved(address indexed baker);
 
     constructor(address chef)
-        public
     {
+        _setupRole(DEFAULT_ADMIN_ROLE, chef);
         _setupRole(CHEF_ROLE, chef);
 
         maxBakersCount = 3;
@@ -46,7 +46,9 @@ abstract contract PieRoles is AccessControl {
         require(newChef != _msgSender(), "PieRoles: new Chef can not be the same as old one");
 
         grantRole(CHEF_ROLE, newChef);
+        grantRole(DEFAULT_ADMIN_ROLE, newChef);
         renounceRole(CHEF_ROLE, _msgSender());
+        renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         emit ChefReassigned(_msgSender(), newChef);
     }

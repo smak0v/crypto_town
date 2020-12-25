@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
-import "openzeppelin-solidity/contracts/token/ERC1155/IERC1155.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";

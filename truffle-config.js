@@ -15,6 +15,7 @@ module.exports = {
       network_id: "*",
       gas: gasLimit,
       gasPrice: gasPrice,
+      skipDryRun: true,
     },
     kovan: {
       network_id: "42",
@@ -27,6 +28,7 @@ module.exports = {
       gas: 7000000,
       from: account,
       timeoutBlocks: 500,
+      skipDryRun: true,
     },
     ropsten: {
       network_id: "3",
@@ -39,6 +41,7 @@ module.exports = {
       gas: 7000000,
       from: account,
       timeoutBlocks: 500,
+      skipDryRun: true,
     },
     rinkeby: {
       network_id: "4",
@@ -51,6 +54,7 @@ module.exports = {
       gas: 7000000,
       from: account,
       timeoutBlocks: 500,
+      skipDryRun: true,
     },
     main: {
       network_id: "1",
@@ -63,6 +67,7 @@ module.exports = {
       gas: 7000000,
       from: account,
       timeoutBlocks: 500,
+      skipDryRun: true,
     },
   },
 
@@ -76,7 +81,7 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "^0.6.0",
+      version: "^0.7.0",
       settings: {
         optimizer: {
           enabled: true,
