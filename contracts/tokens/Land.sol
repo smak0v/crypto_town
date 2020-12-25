@@ -25,10 +25,7 @@ contract Land is ERC721, Ownable {
 
     uint256 public amountOfLands;
 
-    constructor(address lab, address church)
-        ERC721("Land", "LAND")
-        public
-    {
+    constructor(address lab, address church) public ERC721("Land", "LAND") {
         laboratory = lab;
         temple = church;
 
@@ -42,8 +39,7 @@ contract Land is ERC721, Ownable {
         priceInRock = 200 * 1e18;
     }
 
-    modifier onlyCorrectNewPrice(uint256 newPrice)
-    {
+    modifier onlyCorrectNewPrice(uint256 newPrice) {
         require(newPrice > 0, "Land: new price must be greater than 0");
         _;
     }
@@ -53,16 +49,28 @@ contract Land is ERC721, Ownable {
         onlyOwner
         returns (bool)
     {
-        require(newLab != address(0), "Land: laboratory can not be zero address");
-        require(newLab != _msgSender(), "Land: laboratory can not be the same as owner");
-        require(newLab != laboratory, "Land: laboratory can not be the same as old laboratory");
+        require(
+            newLab != address(0),
+            "Land: laboratory can not be zero address"
+        );
+        require(
+            newLab != _msgSender(),
+            "Land: laboratory can not be the same as owner"
+        );
+        require(
+            newLab != laboratory,
+            "Land: laboratory can not be the same as old laboratory"
+        );
 
         laboratory = newLab;
 
         return true;
     }
 
-    function setPriceInGoldAndSilver(uint256 newGoldPrice, uint256 newSilverPrice)
+    function setPriceInGoldAndSilver(
+        uint256 newGoldPrice,
+        uint256 newSilverPrice
+    )
         external
         onlyOwner
         onlyCorrectNewPrice(newGoldPrice)
@@ -96,45 +104,34 @@ contract Land is ERC721, Ownable {
         priceInRock = newPrice;
     }
 
-    function buyUsingGold(string memory URI)
-        external
-        returns (bool)
-    {
+    function buyUsingGold(string memory URI) external returns (bool) {
         ILaboratory lab = ILaboratory(laboratory);
 
         return _buyLandWithOneResource(lab.GOLD(), priceInWood, URI, lab);
     }
 
-    function buyUsingGoldAndSilver(string memory URI)
-        external
-        returns (bool)
-    {
+    function buyUsingGoldAndSilver(string memory URI) external returns (bool) {
         ILaboratory lab = ILaboratory(laboratory);
 
-        return _buyLandWithSomeResources(
-            _to2ElementsArray(lab.GOLD(), lab.SILVER()),
-            _to2ElementsArray(
-                priceInGoldAndSilver.priceInGold,
-                priceInGoldAndSilver.priceInSilver
-            ),
-            URI,
-            lab
-        );
+        return
+            _buyLandWithSomeResources(
+                _to2ElementsArray(lab.GOLD(), lab.SILVER()),
+                _to2ElementsArray(
+                    priceInGoldAndSilver.priceInGold,
+                    priceInGoldAndSilver.priceInSilver
+                ),
+                URI,
+                lab
+            );
     }
 
-    function buyUsingWood(string memory URI)
-        external
-        returns (bool)
-    {
+    function buyUsingWood(string memory URI) external returns (bool) {
         ILaboratory lab = ILaboratory(laboratory);
 
         return _buyLandWithOneResource(lab.WOOD(), priceInWood, URI, lab);
     }
 
-    function buyUsingRock(string memory URI)
-        external
-        returns (bool)
-    {
+    function buyUsingRock(string memory URI) external returns (bool) {
         ILaboratory lab = ILaboratory(laboratory);
 
         return _buyLandWithOneResource(lab.ROCK(), priceInRock, URI, lab);
@@ -145,10 +142,7 @@ contract Land is ERC721, Ownable {
         uint256 resourceAmount,
         string memory landURI,
         ILaboratory lab
-    )
-        private
-        returns (bool)
-    {
+    ) private returns (bool) {
         lab.safeTransferFrom(
             _msgSender(),
             address(this),
@@ -168,10 +162,7 @@ contract Land is ERC721, Ownable {
         uint256[] memory resourcesAmounts,
         string memory landURI,
         ILaboratory lab
-    )
-        private
-        returns (bool)
-    {
+    ) private returns (bool) {
         lab.safeBatchTransferFrom(
             _msgSender(),
             address(this),

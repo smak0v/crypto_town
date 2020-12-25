@@ -18,32 +18,32 @@ abstract contract PieRoles is AccessControl {
     event BakerAdded(address indexed baker);
     event BakerRemoved(address indexed baker);
 
-    constructor(address chef)
-    {
+    constructor(address chef) {
         _setupRole(DEFAULT_ADMIN_ROLE, chef);
         _setupRole(CHEF_ROLE, chef);
 
         maxBakersCount = 3;
     }
 
-    modifier onlyChef()
-    {
+    modifier onlyChef() {
         require(isChef(_msgSender()), "PieRoles: allowed only for Chef");
         _;
     }
 
-    modifier onlyBaker()
-    {
+    modifier onlyBaker() {
         require(isBaker(_msgSender()), "PieRoles: allowed only for Baker");
         _;
     }
 
-    function reassignChef(address newChef)
-        external
-        onlyChef
-    {
-        require(newChef != address(0), "PieRoles: new Chef can not be zero address");
-        require(newChef != _msgSender(), "PieRoles: new Chef can not be the same as old one");
+    function reassignChef(address newChef) external onlyChef {
+        require(
+            newChef != address(0),
+            "PieRoles: new Chef can not be zero address"
+        );
+        require(
+            newChef != _msgSender(),
+            "PieRoles: new Chef can not be the same as old one"
+        );
 
         grantRole(CHEF_ROLE, newChef);
         grantRole(DEFAULT_ADMIN_ROLE, newChef);
@@ -53,11 +53,11 @@ abstract contract PieRoles is AccessControl {
         emit ChefReassigned(_msgSender(), newChef);
     }
 
-    function addBaker(address account)
-        external
-        onlyChef
-    {
-        require(bakers.length() < maxBakersCount, "PieRoles: maximum number of bakers reached");
+    function addBaker(address account) external onlyChef {
+        require(
+            bakers.length() < maxBakersCount,
+            "PieRoles: maximum number of bakers reached"
+        );
 
         grantRole(BAKER_ROLE, account);
 
@@ -66,10 +66,7 @@ abstract contract PieRoles is AccessControl {
         }
     }
 
-    function removeBaker(address account)
-        external
-        onlyChef
-    {
+    function removeBaker(address account) external onlyChef {
         revokeRole(BAKER_ROLE, account);
 
         if (bakers.remove(account)) {
@@ -77,19 +74,11 @@ abstract contract PieRoles is AccessControl {
         }
     }
 
-    function isChef(address account)
-        public
-        view
-        returns (bool)
-    {
+    function isChef(address account) public view returns (bool) {
         return hasRole(CHEF_ROLE, account);
     }
 
-    function isBaker(address account)
-        public
-        view
-        returns (bool)
-    {
+    function isBaker(address account) public view returns (bool) {
         return hasRole(BAKER_ROLE, account);
     }
 }

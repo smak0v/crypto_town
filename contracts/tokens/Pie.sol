@@ -21,20 +21,18 @@ contract Pie is ERC20Capped, PieRoles {
     bool public isClosedKitchen;
 
     constructor()
+        public
         ERC20("Pie", "PIE")
         ERC20Capped(1000 * 1e18)
         PieRoles(_msgSender())
-        public
-    { }
+    {}
 
-    modifier onlyOnOpenedKitchen()
-    {
+    modifier onlyOnOpenedKitchen() {
         require(!isClosedKitchen, "Pie: kitchen must be opened");
         _;
     }
 
-    modifier approvedForWorkWithPies(uint256 amount)
-    {
+    modifier approvedForWorkWithPies(uint256 amount) {
         if (bakersInfo[_msgSender()].timestamp + 1 hours <= block.timestamp) {
             bakersInfo[_msgSender()].timestamp = block.timestamp;
             bakersInfo[_msgSender()].amount = 0;
@@ -79,11 +77,7 @@ contract Pie is ERC20Capped, PieRoles {
         return true;
     }
 
-    function closeKitchen()
-        external
-        onlyChef
-        returns (bool)
-    {
+    function closeKitchen() external onlyChef returns (bool) {
         if (!isClosedKitchen) {
             isClosedKitchen = true;
 
@@ -93,11 +87,7 @@ contract Pie is ERC20Capped, PieRoles {
         return true;
     }
 
-    function openKitchen()
-        external
-        onlyChef
-        returns (bool)
-    {
+    function openKitchen() external onlyChef returns (bool) {
         if (isClosedKitchen) {
             isClosedKitchen = false;
 

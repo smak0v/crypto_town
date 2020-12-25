@@ -20,8 +20,10 @@ contract Laboratory is ERC1155, Ownable {
     );
 
     constructor()
-        ERC1155("https://github.com/smak0v/crypto_town/erc1155/metadata/{id}.json")
         public
+        ERC1155(
+            "https://github.com/smak0v/crypto_town/erc1155/metadata/{id}.json"
+        )
     {
         _mint(_msgSender(), GOLD, 1e3 * 1e18, "");
         _mint(_msgSender(), SILVER, 8e3 * 1e18, "");
@@ -30,11 +32,11 @@ contract Laboratory is ERC1155, Ownable {
         _mint(_msgSender(), ROCK, 33e14 * 1e18, "");
     }
 
-    function addResources(uint256 id, uint256 amount, bytes memory data)
-        external
-        onlyOwner
-        returns (bool)
-    {
+    function addResources(
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) external onlyOwner returns (bool) {
         _mint(_msgSender(), id, amount, data);
 
         emit AddedNewResources(
@@ -47,19 +49,14 @@ contract Laboratory is ERC1155, Ownable {
         return true;
     }
 
-    function addBatchOfResources(uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-        external
-        onlyOwner
-        returns (bool)
-    {
+    function addBatchOfResources(
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) external onlyOwner returns (bool) {
         _mintBatch(_msgSender(), ids, amounts, data);
 
-        emit AddedNewResources(
-            _msgSender(),
-            ids,
-            amounts,
-            data
-        );
+        emit AddedNewResources(_msgSender(), ids, amounts, data);
 
         return true;
     }

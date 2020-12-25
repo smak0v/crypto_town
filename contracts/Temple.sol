@@ -9,7 +9,7 @@ import "./interfaces/IPie.sol";
 contract Temple is Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    // Destitutes - those how have less than 5 pies on his balance
+    // Destitutes - those how have less than 5e18 pies on his balance
     EnumerableSet.AddressSet destitutes;
 
     address public pieAddress;
@@ -19,9 +19,7 @@ contract Temple is Ownable {
     event DestituteAdded(address indexed destitute);
     event DestituteRemoved(address indexed destitute);
 
-    constructor(address initPieAddress)
-        public
-    {
+    constructor(address initPieAddress) public {
         pieAddress = initPieAddress;
     }
 
@@ -30,8 +28,14 @@ contract Temple is Ownable {
         onlyOwner
         returns (bool)
     {
-        require(newPieAddress != address(0), "Temple: pie token can not be zero address");
-        require(newPieAddress != _msgSender(), "Temple: pie token can not be the same as owner");
+        require(
+            newPieAddress != address(0),
+            "Temple: pie token can not be zero address"
+        );
+        require(
+            newPieAddress != _msgSender(),
+            "Temple: pie token can not be the same as owner"
+        );
         require(
             newPieAddress != pieAddress,
             "Temple: pie token can not be the same as old pie token"
@@ -42,15 +46,11 @@ contract Temple is Ownable {
         return true;
     }
 
-    function distributeDonatedPies()
-        external
-        onlyOwner
-        returns (bool)
-    {
+    function distributeDonatedPies() external onlyOwner returns (bool) {
         IPie pie = IPie(pieAddress);
         uint256 balance = pie.balanceOf(address(this));
 
-        for(uint256 i = 0; i < destitutes.length(); ++i) {
+        for (uint256 i = 0; i < destitutes.length(); ++i) {
             pie.transfer(destitutes.at(i), balance / destitutes.length());
 
             if (pie.balanceOf(destitutes.at(i)) > 5 * pie.decimals()) {
@@ -63,10 +63,7 @@ contract Temple is Ownable {
         return true;
     }
 
-    function donatePies(uint256 amount)
-        external
-        returns (bool)
-    {
+    function donatePies(uint256 amount) external returns (bool) {
         IPie pie = IPie(pieAddress);
 
         pie.transferFrom(_msgSender(), address(this), amount);
@@ -76,16 +73,15 @@ contract Temple is Ownable {
         return true;
     }
 
-    function addDestitute(address destitute)
-        external
-        onlyOwner
-        returns (bool)
-    {
+    function addDestitute(address destitute) external onlyOwner returns (bool) {
         IPie pie = IPie(pieAddress);
 
-        require(destitutes.length() <= 50, "Temple: cann ot help more than 50 destitutes");
         require(
-            pie.balanceOf(destitute) < 5 * pie.decimals(),
+            destitutes.length() <= 50,
+            "Temple: cann ot help more than 50 destitutes"
+        );
+        require(
+            pie.balanceOf(destitute) < 5 * (10 ** pie.decimals()),
             "Temple: this account does not need help now"
         );
 
