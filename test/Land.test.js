@@ -1,11 +1,11 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require("truffle-assertions");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const Pie = artifacts.require("Pie");
 const Laboratory = artifacts.require("Laboratory");
 const Temple = artifacts.require("Temple");
 const Land = artifacts.require("Land");
-const utils = require("./helpers/utils");
 
 contract("Land", (accounts) => {
   const [bob, alice] = accounts;
