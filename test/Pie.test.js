@@ -177,7 +177,7 @@ contract("Pie", (accounts) => {
     );
   });
 
-  it("ensure that baker can bake only 4e18 pies in an hour", async () => {
+  it("ensure that baker can bake or destroy only 4e18 pies in an hour", async () => {
     await pie.addBaker(baker1, { from: bob });
     await pie.bakePies(BigInt(4e18), { from: baker1 });
     await utils.shouldThrow(

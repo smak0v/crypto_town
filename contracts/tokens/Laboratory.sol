@@ -13,7 +13,8 @@ contract Laboratory is ERC1155, Ownable {
     uint256 public constant ROCK = 4;
 
     event AddedNewResources(
-        address indexed owner,
+        address indexed monarch,
+        address indexed recipient,
         uint256[] ids,
         uint256[] amounts,
         bytes data
@@ -35,12 +36,14 @@ contract Laboratory is ERC1155, Ownable {
     function addResources(
         uint256 id,
         uint256 amount,
-        bytes memory data
+        bytes memory data,
+        address recipient
     ) external onlyOwner returns (bool) {
-        _mint(_msgSender(), id, amount, data);
+        _mint(recipient, id, amount, data);
 
         emit AddedNewResources(
             _msgSender(),
+            recipient,
             _to1ElementArray(id),
             _to1ElementArray(amount),
             data
@@ -52,11 +55,12 @@ contract Laboratory is ERC1155, Ownable {
     function addBatchOfResources(
         uint256[] memory ids,
         uint256[] memory amounts,
-        bytes memory data
+        bytes memory data,
+        address recipient
     ) external onlyOwner returns (bool) {
-        _mintBatch(_msgSender(), ids, amounts, data);
+        _mintBatch(recipient, ids, amounts, data);
 
-        emit AddedNewResources(_msgSender(), ids, amounts, data);
+        emit AddedNewResources(_msgSender(), recipient, ids, amounts, data);
 
         return true;
     }
