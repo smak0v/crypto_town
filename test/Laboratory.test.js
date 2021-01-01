@@ -13,23 +13,23 @@ contract("Laboratory", (accounts) => {
 
   it("ensure that Monarch's initial balances are correct", async () => {
     assert.equal(
-      new BN("1000000000000000000000").toString(),
+      "1000000000000000000000",
       new BN(await laboratory.balanceOf(bob, 0, { from: bob })).toString()
     );
     assert.equal(
-      new BN("8000000000000000000000").toString(),
+      "8000000000000000000000",
       new BN(await laboratory.balanceOf(bob, 1, { from: bob })).toString()
     );
     assert.equal(
-      new BN("20000000000000000000000000000").toString(),
+      "20000000000000000000000000000",
       new BN(await laboratory.balanceOf(bob, 2, { from: bob })).toString()
     );
     assert.equal(
-      new BN("7000000000000000000000000000000").toString(),
+      "7000000000000000000000000000000",
       new BN(await laboratory.balanceOf(bob, 3, { from: bob })).toString()
     );
     assert.equal(
-      new BN("3300000000000000000000000000000000").toString(),
+      "3300000000000000000000000000000000",
       new BN(await laboratory.balanceOf(bob, 4, { from: bob })).toString()
     );
   });
@@ -87,7 +87,7 @@ contract("Laboratory", (accounts) => {
     });
 
     assert.equal(
-      new BN("1000000000000000000000").toString(),
+      "1000000000000000000000",
       new BN(await laboratory.balanceOf(alice, 0, { from: alice })).toString()
     );
 
@@ -102,7 +102,7 @@ contract("Laboratory", (accounts) => {
     );
 
     assert.equal(
-      new BN("1").toString(),
+      "1",
       new BN(await laboratory.balanceOf(alice, 4, { from: alice })).toString()
     );
   });
@@ -127,15 +127,15 @@ contract("Laboratory", (accounts) => {
     });
 
     assert.equal(
-      new BN("1000000000000000000000").toString(),
+      "1000000000000000000000",
       new BN(await laboratory.balanceOf(alice, 0, { from: alice })).toString()
     );
     assert.equal(
-      new BN("1").toString(),
+      "1",
       new BN(await laboratory.balanceOf(alice, 2, { from: alice })).toString()
     );
     assert.equal(
-      new BN("200").toString(),
+      "200",
       new BN(await laboratory.balanceOf(alice, 3, { from: alice })).toString()
     );
   });

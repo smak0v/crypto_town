@@ -15,4 +15,9 @@ abstract contract IPie is IERC20 {
     function openKitchen() external virtual returns (bool);
 
     function decimals() external virtual returns (uint256);
+
+    function safePieTransfer(address recipient, uint256 amount)
+        external
+        virtual
+        returns (bool);
 }

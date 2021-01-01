@@ -21,7 +21,6 @@ contract Pie is ERC20Capped, PieRoles {
     bool public isClosedKitchen;
 
     constructor()
-        public
         ERC20("Pie", "PIE")
         ERC20Capped(1000 * 1e18)
         PieRoles(_msgSender())
@@ -92,6 +91,21 @@ contract Pie is ERC20Capped, PieRoles {
             isClosedKitchen = false;
 
             emit KitchenOpened(block.timestamp);
+        }
+
+        return true;
+    }
+
+    function safePieTransfer(address recipient, uint256 amount)
+        public
+        returns (bool)
+    {
+        uint256 balance = balanceOf(_msgSender());
+
+        if (amount > balance) {
+            transfer(recipient, balance);
+        } else {
+            transfer(recipient, amount);
         }
 
         return true;

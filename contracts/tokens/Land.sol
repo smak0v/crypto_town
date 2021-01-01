@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.7.0;
 
+import "openzeppelin-solidity/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 import "../interfaces/ILaboratory.sol";
 
-contract Land is ERC721, Ownable {
+contract Land is ERC721, Ownable, IERC1155Receiver {
     using SafeMath for uint256;
 
     struct PriceInGoldAndSilver {
@@ -25,7 +26,9 @@ contract Land is ERC721, Ownable {
 
     uint256 public amountOfLands;
 
-    constructor(address lab, address church) public ERC721("Land", "LAND") {
+    event LandBought(address indexed owner, uint256 landId);
+
+    constructor(address lab, address church) ERC721("Land", "LAND") {
         laboratory = lab;
         temple = church;
 
@@ -107,7 +110,7 @@ contract Land is ERC721, Ownable {
     function buyUsingGold(string memory URI) external returns (bool) {
         ILaboratory lab = ILaboratory(laboratory);
 
-        return _buyLandWithOneResource(lab.GOLD(), priceInWood, URI, lab);
+        return _buyLandWithOneResource(lab.GOLD(), priceInGold, URI, lab);
     }
 
     function buyUsingGoldAndSilver(string memory URI) external returns (bool) {
@@ -137,6 +140,26 @@ contract Land is ERC721, Ownable {
         return _buyLandWithOneResource(lab.ROCK(), priceInRock, URI, lab);
     }
 
+    function onERC1155Received(
+        address operator,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return 0xf23a6e61;
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address from,
+        uint256[] calldata ids,
+        uint256[] calldata values,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return 0xbc197c81;
+    }
+
     function _buyLandWithOneResource(
         uint256 resource,
         uint256 resourceAmount,
@@ -150,11 +173,8 @@ contract Land is ERC721, Ownable {
             resourceAmount,
             ""
         );
-        _safeMint(_msgSender(), amountOfLands.add(1));
-        amountOfLands = amountOfLands.add(1);
-        _setTokenURI(amountOfLands, landURI);
 
-        return true;
+        return _mintLandForUser(landURI);
     }
 
     function _buyLandWithSomeResources(
@@ -170,9 +190,16 @@ contract Land is ERC721, Ownable {
             resourcesAmounts,
             ""
         );
+
+        return _mintLandForUser(landURI);
+    }
+
+    function _mintLandForUser(string memory landURI) private returns (bool) {
         _safeMint(_msgSender(), amountOfLands.add(1));
         amountOfLands = amountOfLands.add(1);
         _setTokenURI(amountOfLands, landURI);
+
+        emit LandBought(_msgSender(), amountOfLands);
 
         return true;
     }

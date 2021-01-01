@@ -21,7 +21,6 @@ contract Laboratory is ERC1155, Ownable {
     );
 
     constructor()
-        public
         ERC1155(
             "https://github.com/smak0v/crypto_town/erc1155/metadata/{id}.json"
         )

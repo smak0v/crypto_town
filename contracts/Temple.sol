@@ -19,7 +19,7 @@ contract Temple is Ownable {
     event DestituteAdded(address indexed destitute);
     event DestituteRemoved(address indexed destitute);
 
-    constructor(address initPieAddress) public {
+    constructor(address initPieAddress) {
         pieAddress = initPieAddress;
     }
 
@@ -50,10 +50,15 @@ contract Temple is Ownable {
         IPie pie = IPie(pieAddress);
         uint256 balance = pie.balanceOf(address(this));
 
-        for (uint256 i = 0; i < destitutes.length(); ++i) {
-            pie.transfer(destitutes.at(i), balance / destitutes.length());
+        require(balance > 0, "Temple: no pies were donated yet");
 
-            if (pie.balanceOf(destitutes.at(i)) > 5 * pie.decimals()) {
+        for (uint256 i = 0; i < destitutes.length(); ++i) {
+            pie.safePieTransfer(
+                destitutes.at(i),
+                balance / destitutes.length()
+            );
+
+            if (pie.balanceOf(destitutes.at(i)) > 5 * 10**pie.decimals()) {
                 removeDestitute(destitutes.at(i));
             }
         }
@@ -81,7 +86,7 @@ contract Temple is Ownable {
             "Temple: cann ot help more than 50 destitutes"
         );
         require(
-            pie.balanceOf(destitute) < 5 * (10 ** pie.decimals()),
+            pie.balanceOf(destitute) < 5 * (10**pie.decimals()),
             "Temple: this account does not need help now"
         );
 
@@ -102,5 +107,9 @@ contract Temple is Ownable {
         }
 
         return true;
+    }
+
+    function isDestitute(address account) external view returns (bool) {
+        return destitutes.contains(account);
     }
 }
