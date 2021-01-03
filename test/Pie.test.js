@@ -1,7 +1,7 @@
 require("truffle-test-utils").init();
 
 const truffleAssert = require("truffle-assertions");
-const { time, constants } = require("@openzeppelin/test-helpers");
+const { time, constants, BN } = require("@openzeppelin/test-helpers");
 const Pie = artifacts.require("Pie");
 const utils = require("./helpers/utils");
 
@@ -103,7 +103,7 @@ contract("Pie", (accounts) => {
     assert.equal(true, await pie.isClosedKitchen({ from: bob }));
 
     await utils.shouldThrow(
-      pie.bakePies(BigInt(2e18), { from: baker1 }),
+      pie.bakePies(new BN("2000000000000000000"), { from: baker1 }),
       "Pie: kitchen must be opened"
     );
 
@@ -123,93 +123,112 @@ contract("Pie", (accounts) => {
 
   it("baking of pies", async () => {
     await utils.shouldThrow(
-      pie.bakePies(BigInt(2e18), { from: baker1 }),
+      pie.bakePies(new BN("2000000000000000000"), { from: baker1 }),
       "PieRoles: allowed only for Baker"
     );
     await pie.addBaker(baker1, { from: bob });
 
-    let tx = await pie.bakePies(BigInt(2e18), { from: baker1 });
-
-    truffleAssert.eventEmitted(tx, "PiesBaked", (event) => {
-      return event.baker == baker1 && event.amount == BigInt(2e18);
+    let tx = await pie.bakePies(new BN("2000000000000000000"), {
+      from: baker1,
     });
 
-    assert.equal(BigInt(2e18), await pie.balanceOf(baker1, { from: baker1 }));
+    truffleAssert.eventEmitted(tx, "PiesBaked", (event) => {
+      return event.baker == baker1 && event.amount == 2000000000000000000;
+    });
 
-    await pie.bakePies(BigInt(13e17), { from: baker1 });
+    assert.equal(
+      "2000000000000000000",
+      new BN(await pie.balanceOf(baker1, { from: baker1 })).toString()
+    );
 
-    assert.equal(BigInt(33e17), await pie.balanceOf(baker1, { from: baker1 }));
+    await pie.bakePies(new BN("1300000000000000000"), { from: baker1 });
 
-    await pie.bakePies(BigInt(7e17), { from: baker1 });
+    assert.equal(
+      "3300000000000000000",
+      new BN(await pie.balanceOf(baker1, { from: baker1 })).toString()
+    );
 
-    assert.equal(BigInt(4e18), await pie.balanceOf(baker1, { from: baker1 }));
+    await pie.bakePies(new BN("700000000000000000"), { from: baker1 });
+
+    assert.equal(
+      "4000000000000000000",
+      new BN(await pie.balanceOf(baker1, { from: baker1 })).toString()
+    );
 
     await utils.shouldThrow(
-      pie.bakePies(BigInt(1e18), { from: baker1 }),
+      pie.bakePies(new BN("1000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
   });
 
   it("destroying of pies", async () => {
     await pie.addBaker(baker1, { from: bob });
-    await pie.bakePies(BigInt(2e18), { from: baker1 });
+    await pie.bakePies(new BN("2000000000000000000"), { from: baker1 });
 
-    let tx = await pie.destroyPies(BigInt(1e18), { from: baker1 });
+    let tx = await pie.destroyPies(new BN("1000000000000000000"), {
+      from: baker1,
+    });
 
     truffleAssert.eventEmitted(tx, "PiesDestroyed", (event) => {
-      return event.baker == baker1 && event.amount == BigInt(1e18);
+      return event.baker == baker1 && event.amount == 1000000000000000000;
     });
 
     await utils.shouldThrow(
-      pie.destroyPies(BigInt(2e18), { from: baker1 }),
+      pie.destroyPies(new BN("2000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
 
-    assert.equal(BigInt(1e18), await pie.balanceOf(baker1, { from: baker1 }));
+    assert.equal(
+      "1000000000000000000",
+      new BN(await pie.balanceOf(baker1, { from: baker1 })).toString()
+    );
 
-    await pie.destroyPies(BigInt(1e18), { from: baker1 });
+    await pie.destroyPies(new BN("1000000000000000000"), { from: baker1 });
 
-    assert.equal(0, await pie.balanceOf(baker1, { from: baker1 }));
+    assert.equal(
+      "0",
+      new BN(await pie.balanceOf(baker1, { from: baker1 })).toString()
+    );
 
     await utils.shouldThrow(
-      pie.destroyPies(BigInt(3e18), { from: baker1 }),
+      pie.destroyPies(new BN("3000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
   });
 
   it("ensure that baker can bake or destroy only 4e18 pies in an hour", async () => {
     await pie.addBaker(baker1, { from: bob });
-    await pie.bakePies(BigInt(4e18), { from: baker1 });
+    await pie.bakePies(new BN("4000000000000000000"), { from: baker1 });
     await utils.shouldThrow(
-      pie.bakePies(BigInt(1e18), { from: baker1 }),
+      pie.bakePies(new BN("1000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
     await time.increase(3600);
-    await pie.bakePies(BigInt(4e18), { from: baker1 });
+    await pie.bakePies(new BN("4000000000000000000"), { from: baker1 });
     await time.increase(3600);
-    await pie.bakePies(BigInt(2e18), { from: baker1 });
+    await pie.bakePies(new BN("2000000000000000000"), { from: baker1 });
     await utils.shouldThrow(
-      pie.destroyPies(BigInt(3e18), { from: baker1 }),
+      pie.destroyPies(new BN("3000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
-    await pie.bakePies(BigInt(2e18), { from: baker1 });
+    await pie.bakePies(new BN("2000000000000000000"), { from: baker1 });
     await time.increase(3600);
-    await pie.destroyPies(BigInt(3e18), { from: baker1 });
-    await pie.bakePies(BigInt(1e18), { from: baker1 });
+    await pie.destroyPies(new BN("3000000000000000000"), { from: baker1 });
+    await pie.bakePies(new BN("1000000000000000000"), { from: baker1 });
     await utils.shouldThrow(
-      pie.destroyPies(BigInt(3e18), { from: baker1 }),
+      pie.destroyPies(new BN("3000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
     await time.increase(1800);
     await utils.shouldThrow(
-      pie.bakePies(BigInt(4e18), { from: baker1 }),
+      pie.bakePies(new BN("4000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
     await time.increase(1800);
     await utils.shouldThrow(
-      pie.bakePies(BigInt(5e18), { from: baker1 }),
+      pie.bakePies(new BN("5000000000000000000"), { from: baker1 }),
       "Pie: you can bake or destroy only 4e18 Pies in an hour"
     );
-    await pie.bakePies(BigInt(4e18), { from: baker1 });
+    await pie.bakePies(new BN("4000000000000000000"), { from: baker1 });
   });
 });

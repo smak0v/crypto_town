@@ -4,7 +4,6 @@ const truffleAssert = require("truffle-assertions");
 const { BN, expectRevert, constants } = require("@openzeppelin/test-helpers");
 const Pie = artifacts.require("Pie");
 const Laboratory = artifacts.require("Laboratory");
-const Temple = artifacts.require("Temple");
 const Land = artifacts.require("Land");
 
 contract("Land", (accounts) => {
@@ -13,8 +12,7 @@ contract("Land", (accounts) => {
   beforeEach(async () => {
     pie = await Pie.new();
     laboratory = await Laboratory.new();
-    temple = await Temple.new(pie.address);
-    land = await Land.new(laboratory.address, temple.address);
+    land = await Land.new(laboratory.address);
   });
 
   it("ensure that initial variables are correct", async () => {
@@ -22,20 +20,40 @@ contract("Land", (accounts) => {
       "1000000000000000000000",
       new BN(await land.priceInGold({ from: bob })).toString()
     );
+
+    let priceInGoldWoodAndRock = await land.methods[
+      "priceInGoldWoodAndRock()"
+    ]();
+
     assert.equal(
-      "300000000000000000000",
-      new BN(await land.priceInWood({ from: bob })).toString()
+      new BN(priceInGoldWoodAndRock[0]).toString(),
+      "100000000000000000000"
     );
     assert.equal(
-      "200000000000000000000",
-      new BN(await land.priceInRock({ from: bob })).toString()
+      new BN(priceInGoldWoodAndRock[1]).toString(),
+      "300000000000000000000"
+    );
+    assert.equal(
+      new BN(priceInGoldWoodAndRock[2]).toString(),
+      "200000000000000000000"
     );
 
-    let price = await land.methods["priceInGoldAndSilver()"]();
+    let priceInSilverWoodAndRock = await land.methods[
+      "priceInSilverWoodAndRock()"
+    ]();
 
-    assert.equal(new BN(price[0]).toString(), "100000000000000000000");
-    assert.equal(new BN(price[1]).toString(), "2000000000000000000000");
-    assert.equal(temple.address, await land.temple({ from: bob }));
+    assert.equal(
+      new BN(priceInSilverWoodAndRock[0]).toString(),
+      "2000000000000000000000"
+    );
+    assert.equal(
+      new BN(priceInSilverWoodAndRock[1]).toString(),
+      "300000000000000000000"
+    );
+    assert.equal(
+      new BN(priceInSilverWoodAndRock[2]).toString(),
+      "200000000000000000000"
+    );
     assert.equal(laboratory.address, await land.laboratory({ from: bob }));
   });
 
@@ -69,68 +87,75 @@ contract("Land", (accounts) => {
 
   it("ensure that only owner can set up new prices for lands", async () => {
     await expectRevert(
-      land.setPriceInGoldAndSilver(1, 1, { from: alice }),
-      "Ownable: caller is not the owner"
-    );
-    await expectRevert(
       land.setPriceInGold(1, { from: alice }),
       "Ownable: caller is not the owner"
     );
     await expectRevert(
-      land.setPriceInWood(1, { from: alice }),
+      land.setPriceInGoldWoodAndRock(1, 1, 1, { from: alice }),
       "Ownable: caller is not the owner"
     );
     await expectRevert(
-      land.setPriceInRock(1, { from: alice }),
+      land.setPriceInSilverWoodAndRock(1, 1, 1, { from: alice }),
       "Ownable: caller is not the owner"
     );
   });
 
   it("ensure that owner can set up only correct prices for lands", async () => {
     await expectRevert(
-      land.setPriceInGoldAndSilver(0, 1, { from: bob }),
-      "Land: new price must be greater than 0"
-    );
-    await expectRevert(
-      land.setPriceInGoldAndSilver(1, 0, { from: bob }),
-      "Land: new price must be greater than 0"
-    );
-    await expectRevert(
       land.setPriceInGold(0, { from: bob }),
       "Land: new price must be greater than 0"
     );
     await expectRevert(
-      land.setPriceInWood(0, { from: bob }),
+      land.setPriceInGoldWoodAndRock(0, 1, 1, { from: bob }),
       "Land: new price must be greater than 0"
     );
     await expectRevert(
-      land.setPriceInRock(0, { from: bob }),
+      land.setPriceInGoldWoodAndRock(1, 0, 1, { from: bob }),
+      "Land: new price must be greater than 0"
+    );
+    await expectRevert(
+      land.setPriceInGoldWoodAndRock(0, 1, 1, { from: bob }),
+      "Land: new price must be greater than 0"
+    );
+    await expectRevert(
+      land.setPriceInSilverWoodAndRock(0, 1, 1, { from: bob }),
+      "Land: new price must be greater than 0"
+    );
+    await expectRevert(
+      land.setPriceInSilverWoodAndRock(1, 0, 1, { from: bob }),
+      "Land: new price must be greater than 0"
+    );
+    await expectRevert(
+      land.setPriceInSilverWoodAndRock(1, 1, 0, { from: bob }),
       "Land: new price must be greater than 0"
     );
   });
 
   it("ensure that new price setting works correctly", async () => {
-    await land.setPriceInGoldAndSilver(100, 2000, { from: bob });
     await land.setPriceInGold(500, { from: bob });
-    await land.setPriceInWood(40000, { from: bob });
-    await land.setPriceInRock(9999999, { from: bob });
+    await land.setPriceInGoldWoodAndRock(100, 2000, 300, { from: bob });
+    await land.setPriceInSilverWoodAndRock(200, 1, 999, { from: bob });
 
-    let price = await land.methods["priceInGoldAndSilver()"]();
-
-    assert.equal(new BN(price[0]).toString(), "100");
-    assert.equal(new BN(price[1]).toString(), "2000");
     assert.equal(
       "500",
       new BN(await land.priceInGold({ from: bob })).toString()
     );
-    assert.equal(
-      "40000",
-      new BN(await land.priceInWood({ from: bob })).toString()
-    );
-    assert.equal(
-      "9999999",
-      new BN(await land.priceInRock({ from: bob })).toString()
-    );
+
+    let priceInGoldWoodAndRock = await land.methods[
+      "priceInGoldWoodAndRock()"
+    ]();
+
+    assert.equal(new BN(priceInGoldWoodAndRock[0]).toString(), "100");
+    assert.equal(new BN(priceInGoldWoodAndRock[1]).toString(), "2000");
+    assert.equal(new BN(priceInGoldWoodAndRock[2]).toString(), "300");
+
+    let priceInSilverWoodAndRock = await land.methods[
+      "priceInSilverWoodAndRock()"
+    ]();
+
+    assert.equal(new BN(priceInSilverWoodAndRock[0]).toString(), "200");
+    assert.equal(new BN(priceInSilverWoodAndRock[1]).toString(), "1");
+    assert.equal(new BN(priceInSilverWoodAndRock[2]).toString(), "999");
   });
 
   it("ensure that resources can be spent by operator only after allowance", async () => {
@@ -191,28 +216,44 @@ contract("Land", (accounts) => {
     );
   });
 
-  it("ensure that land can be bought using wood", async () => {
-    await laboratory.addResources(
-      3,
-      new BN("600000000000000000000"),
+  it("ensure that land can be bought using gold, wood and rock", async () => {
+    await laboratory.addBatchOfResources(
+      [0, 3, 4],
+      [
+        new BN("200000000000000000000"),
+        new BN("600000000000000000000"),
+        new BN("400000000000000000000"),
+      ],
       web3.utils.fromAscii(""),
       alice,
       { from: bob }
     );
     await laboratory.setApprovalForAll(land.address, true, { from: alice });
 
-    let tx = await land.buyUsingWood("https://google.com/", { from: alice });
+    let tx = await land.buyUsingGoldWoodAndRock("https://google.com/", {
+      from: alice,
+    });
 
     truffleAssert.eventEmitted(tx, "LandBought", (event) => {
       return event.owner == alice && event.landId == 1;
     });
 
     assert.equal(
+      "100000000000000000000",
+      new BN(await laboratory.balanceOf(alice, 0, { from: alice })).toString()
+    );
+    assert.equal(
       "300000000000000000000",
       new BN(await laboratory.balanceOf(alice, 3, { from: alice })).toString()
     );
+    assert.equal(
+      "200000000000000000000",
+      new BN(await laboratory.balanceOf(alice, 4, { from: alice })).toString()
+    );
 
-    tx = await land.buyUsingWood("https://google.com/", { from: alice });
+    tx = await land.buyUsingGoldWoodAndRock("https://google.com/", {
+      from: alice,
+    });
 
     truffleAssert.eventEmitted(tx, "LandBought", (event) => {
       return event.owner == alice && event.landId == 2;
@@ -222,45 +263,33 @@ contract("Land", (accounts) => {
 
     assert.equal(
       "0",
+      new BN(await laboratory.balanceOf(alice, 0, { from: alice })).toString()
+    );
+    assert.equal(
+      "0",
       new BN(await laboratory.balanceOf(alice, 3, { from: alice })).toString()
     );
-  });
-
-  it("ensure that land can be bought using rock", async () => {
-    await laboratory.addResources(
-      4,
-      new BN("200000000000000000000"),
-      web3.utils.fromAscii(""),
-      alice,
-      { from: bob }
-    );
-    await laboratory.setApprovalForAll(land.address, true, { from: alice });
-
-    let tx = await land.buyUsingRock("https://google.com/", { from: alice });
-
-    truffleAssert.eventEmitted(tx, "LandBought", (event) => {
-      return event.owner == alice && event.landId == 1;
-    });
-
-    await laboratory.setApprovalForAll(land.address, false, { from: alice });
-
     assert.equal(
       "0",
       new BN(await laboratory.balanceOf(alice, 4, { from: alice })).toString()
     );
   });
 
-  it("ensure that land can be bought using gold and silcer", async () => {
+  it("ensure that land can be bought using silver, wood and rock", async () => {
     await laboratory.addBatchOfResources(
-      [0, 1],
-      [new BN("100000000000000000000"), new BN("2000000000000000000000")],
+      [1, 3, 4],
+      [
+        new BN("2000000000000000000000"),
+        new BN("300000000000000000000"),
+        new BN("200000000000000000000"),
+      ],
       web3.utils.fromAscii(""),
       alice,
       { from: bob }
     );
     await laboratory.setApprovalForAll(land.address, true, { from: alice });
 
-    let tx = await land.buyUsingGoldAndSilver("https://google.com/", {
+    let tx = await land.buyUsingSilverWoodAndRock("https://google.com/", {
       from: alice,
     });
 
@@ -272,11 +301,15 @@ contract("Land", (accounts) => {
 
     assert.equal(
       "0",
-      new BN(await laboratory.balanceOf(alice, 0, { from: alice })).toString()
+      new BN(await laboratory.balanceOf(alice, 1, { from: alice })).toString()
     );
     assert.equal(
       "0",
-      new BN(await laboratory.balanceOf(alice, 1, { from: alice })).toString()
+      new BN(await laboratory.balanceOf(alice, 3, { from: alice })).toString()
+    );
+    assert.equal(
+      "0",
+      new BN(await laboratory.balanceOf(alice, 4, { from: alice })).toString()
     );
   });
 });

@@ -11,35 +11,42 @@ import "../interfaces/ILaboratory.sol";
 contract Land is ERC721, Ownable, IERC1155Receiver {
     using SafeMath for uint256;
 
-    struct PriceInGoldAndSilver {
+    struct PriceInGoldWoodAndRock {
         uint256 priceInGold;
+        uint256 priceInWood;
+        uint256 priceInRock;
+    }
+
+    struct PriceInSilverWoodAndRock {
         uint256 priceInSilver;
+        uint256 priceInWood;
+        uint256 priceInRock;
     }
 
     address public laboratory;
-    address public temple;
 
-    PriceInGoldAndSilver public priceInGoldAndSilver;
+    PriceInGoldWoodAndRock public priceInGoldWoodAndRock;
+    PriceInSilverWoodAndRock public priceInSilverWoodAndRock;
     uint256 public priceInGold;
-    uint256 public priceInWood;
-    uint256 public priceInRock;
 
     uint256 public amountOfLands;
 
     event LandBought(address indexed owner, uint256 landId);
 
-    constructor(address lab, address church) ERC721("Land", "LAND") {
+    constructor(address lab) ERC721("Land", "LAND") {
         laboratory = lab;
-        temple = church;
 
-        priceInGoldAndSilver = PriceInGoldAndSilver({
+        priceInGoldWoodAndRock = PriceInGoldWoodAndRock({
             priceInGold: 100 * 1e18,
-            priceInSilver: 2000 * 1e18
+            priceInWood: 300 * 1e18,
+            priceInRock: 200 * 1e18
         });
-
+        priceInSilverWoodAndRock = PriceInSilverWoodAndRock({
+            priceInSilver: 2000 * 1e18,
+            priceInWood: 300 * 1e18,
+            priceInRock: 200 * 1e18
+        });
         priceInGold = 1000 * 1e18;
-        priceInWood = 300 * 1e18;
-        priceInRock = 200 * 1e18;
     }
 
     modifier onlyCorrectNewPrice(uint256 newPrice) {
@@ -70,19 +77,6 @@ contract Land is ERC721, Ownable, IERC1155Receiver {
         return true;
     }
 
-    function setPriceInGoldAndSilver(
-        uint256 newGoldPrice,
-        uint256 newSilverPrice
-    )
-        external
-        onlyOwner
-        onlyCorrectNewPrice(newGoldPrice)
-        onlyCorrectNewPrice(newSilverPrice)
-    {
-        priceInGoldAndSilver.priceInGold = newGoldPrice;
-        priceInGoldAndSilver.priceInSilver = newSilverPrice;
-    }
-
     function setPriceInGold(uint256 newPrice)
         external
         onlyOwner
@@ -91,20 +85,36 @@ contract Land is ERC721, Ownable, IERC1155Receiver {
         priceInGold = newPrice;
     }
 
-    function setPriceInWood(uint256 newPrice)
+    function setPriceInGoldWoodAndRock(
+        uint256 newGoldPrice,
+        uint256 newWoodPrice,
+        uint256 newRockPrice
+    )
         external
         onlyOwner
-        onlyCorrectNewPrice(newPrice)
+        onlyCorrectNewPrice(newGoldPrice)
+        onlyCorrectNewPrice(newWoodPrice)
+        onlyCorrectNewPrice(newRockPrice)
     {
-        priceInWood = newPrice;
+        priceInGoldWoodAndRock.priceInGold = newGoldPrice;
+        priceInGoldWoodAndRock.priceInWood = newWoodPrice;
+        priceInGoldWoodAndRock.priceInRock = newRockPrice;
     }
 
-    function setPriceInRock(uint256 newPrice)
+    function setPriceInSilverWoodAndRock(
+        uint256 newSilverPrice,
+        uint256 newWoodPrice,
+        uint256 newRockPrice
+    )
         external
         onlyOwner
-        onlyCorrectNewPrice(newPrice)
+        onlyCorrectNewPrice(newSilverPrice)
+        onlyCorrectNewPrice(newWoodPrice)
+        onlyCorrectNewPrice(newRockPrice)
     {
-        priceInRock = newPrice;
+        priceInSilverWoodAndRock.priceInSilver = newSilverPrice;
+        priceInSilverWoodAndRock.priceInWood = newWoodPrice;
+        priceInSilverWoodAndRock.priceInRock = newRockPrice;
     }
 
     function buyUsingGold(string memory URI) external returns (bool) {
@@ -113,31 +123,42 @@ contract Land is ERC721, Ownable, IERC1155Receiver {
         return _buyLandWithOneResource(lab.GOLD(), priceInGold, URI, lab);
     }
 
-    function buyUsingGoldAndSilver(string memory URI) external returns (bool) {
+    function buyUsingGoldWoodAndRock(string memory URI)
+        external
+        returns (bool)
+    {
         ILaboratory lab = ILaboratory(laboratory);
 
         return
             _buyLandWithSomeResources(
-                _to2ElementsArray(lab.GOLD(), lab.SILVER()),
-                _to2ElementsArray(
-                    priceInGoldAndSilver.priceInGold,
-                    priceInGoldAndSilver.priceInSilver
+                _to3ElementsArray(lab.GOLD(), lab.WOOD(), lab.ROCK()),
+                _to3ElementsArray(
+                    priceInGoldWoodAndRock.priceInGold,
+                    priceInGoldWoodAndRock.priceInWood,
+                    priceInGoldWoodAndRock.priceInRock
                 ),
                 URI,
                 lab
             );
     }
 
-    function buyUsingWood(string memory URI) external returns (bool) {
+    function buyUsingSilverWoodAndRock(string memory URI)
+        external
+        returns (bool)
+    {
         ILaboratory lab = ILaboratory(laboratory);
 
-        return _buyLandWithOneResource(lab.WOOD(), priceInWood, URI, lab);
-    }
-
-    function buyUsingRock(string memory URI) external returns (bool) {
-        ILaboratory lab = ILaboratory(laboratory);
-
-        return _buyLandWithOneResource(lab.ROCK(), priceInRock, URI, lab);
+        return
+            _buyLandWithSomeResources(
+                _to3ElementsArray(lab.SILVER(), lab.WOOD(), lab.ROCK()),
+                _to3ElementsArray(
+                    priceInSilverWoodAndRock.priceInSilver,
+                    priceInSilverWoodAndRock.priceInWood,
+                    priceInSilverWoodAndRock.priceInRock
+                ),
+                URI,
+                lab
+            );
     }
 
     function onERC1155Received(
@@ -204,15 +225,16 @@ contract Land is ERC721, Ownable, IERC1155Receiver {
         return true;
     }
 
-    function _to2ElementsArray(uint256 element1, uint256 element2)
-        private
-        pure
-        returns (uint256[] memory)
-    {
-        uint256[] memory array = new uint256[](2);
+    function _to3ElementsArray(
+        uint256 element1,
+        uint256 element2,
+        uint256 element3
+    ) private pure returns (uint256[] memory) {
+        uint256[] memory array = new uint256[](3);
 
         array[0] = element1;
         array[1] = element2;
+        array[2] = element3;
 
         return array;
     }
