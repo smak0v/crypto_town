@@ -2,6 +2,7 @@ const Pie = artifacts.require("Pie");
 const Laboratory = artifacts.require("Laboratory");
 const Land = artifacts.require("Land");
 const Temple = artifacts.require("Temple");
+const Bakery = artifacts.require("Bakery");
 
 module.exports = async (deployer) => {
   await deployer.deploy(Pie);
@@ -13,6 +14,10 @@ module.exports = async (deployer) => {
   let landInstance = await Land.deployed();
 
   await laboratoryInstance.setApprovalForAll(Land.address, true);
-  await landInstance.buyUsingGold("https://github.com/smak0v/crypto_town/erc721/metadata/temple.json");
+  await landInstance.buyUsingGold(
+    "https://github.com/smak0v/crypto_town/erc721/metadata/temple.json"
+  );
   await laboratoryInstance.setApprovalForAll(Land.address, false);
+
+  await deployer.deploy(Bakery, Pie.address);
 };
